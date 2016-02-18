@@ -1,0 +1,7 @@
+images with the suffix SSP are the active subspace "sufficient summary plots".
+
+The inflow AS analysis produced images based on exit pressure (as opposed to max(P)), using the key "EP" in the title.
+
+FFR is the "fuel flow rate" which was the fuel plenum pressure applied when trying to have an equivalence ratio "ER" of a specific value [0.25,0.3,0.35,0.4] under nominal conditions.
+
+The images with "ER" show the computed equivalence ratio plotted against the active variable (AS best dimension). Interestingly, if we believe the active variable to be a good proxy for thrust, we see there is little correlation to the achieved equivalence ratio.
