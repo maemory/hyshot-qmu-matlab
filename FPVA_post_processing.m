@@ -124,7 +124,7 @@ INT_HR_N(:,1) = [
 % X: raw sample values
 % X_u: vector of max sample values (upper)
 % X_l: vector of min sample values (lower)
-load /Users/memory/Dropbox/Matlab/Hyshot_QMU/chem24_samples.mat
+load /Users/memory/Dropbox/Matlab/Hyshot_QMU/PAUL-chem24_samples.mat
 
 Xhat = (2 * X - repmat(X_u + X_l,1,M)) ./ repmat(X_u - X_l,1,M);
 
@@ -157,6 +157,7 @@ disp('maxHR min a.v.:')
 disp(av_min)
 disp('maxHR min weights:')
 disp(x_min')
+Xmin_MHR = 0.5 * (x_min .* (X_u - X_l) + (X_u + X_l));
 
 x_max = fmincon(@(x) -1*(w_maxHR' * x),x0,A,b,Aeq,beq,lb,ub);
 av_max = x_max' * w_maxHR;
@@ -174,6 +175,8 @@ disp('intHR min a.v.:')
 disp(av_min)
 disp('intHR min weights:')
 disp(x_min')
+Xmin_IHR = 0.5 * (x_min .* (X_u - X_l) + (X_u + X_l));
+
 
 x_max = fmincon(@(x) -1*(w_intHR' * x),x0,A,b,Aeq,beq,lb,ub);
 av_max = x_max' * w_intHR;
@@ -182,6 +185,71 @@ disp(av_max)
 disp('intHR max weights:')
 disp(x_max')
 Xmax_IHR = 0.5 * (x_max .* (X_u - X_l) + (X_u + X_l));
+
+%% 
+
+X_labels={
+ 'r1',
+ 'r2',
+ 'r5',
+ 'r8',
+ 'r9/r10',
+ 'r11',
+ 'r14/r15',
+ 'r16',
+ 'r17',
+ 'r19',
+ 'r22',
+ 'r24'
+};
+
+for i=1:12
+   disp(sprintf('%f %f %s',X_l(i),X_u(i),X_labels{i})); 
+end
+
+% script-to-Hong reaction
+A_mapping = {
+'r1',1,
+'r2',2,
+'r3',2,
+'r4',2,
+'r5',3,
+'r6',4,
+'r7',4,
+'r8',5,
+'r9',6,
+'r10',6,
+'r11',7,
+'r12',7,
+'r13',8,
+'r14',9,
+'r15',9,
+'r16',10,
+'r17',11,
+'r18',12,
+'r19',13,
+'r20',14,
+'r21',15,
+'r22',16,
+'r23',17,
+'r24',18,
+'r25',18,
+'r26',18,
+'r27',18,
+'r28',19,
+'r29',20
+};
+
+%% uncertainty factor sample values (multiply the nominal)
+disp('UF sample values:');disp('=================');
+disp(' > min(HR)');
+disp(Xmin_MHR);
+disp(' > max(HR)');
+disp(Xmax_MHR);
+disp(' > min(int(HR))');
+disp(Xmin_IHR);
+disp(' > max(int(HR))');
+disp(Xmax_IHR);
 
 %%
 % for plotting
