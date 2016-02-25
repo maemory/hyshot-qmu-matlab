@@ -4,10 +4,10 @@ clear all; clc;
 M = 24;
 m = 12;
 
-MAX_HR = zeros(24,1);
-INT_HR = zeros(24,1);
-MAX_HR_N = zeros(24,1);
-INT_HR_N = zeros(24,1);
+MAX_HR = zeros(M+4,1);
+INT_HR = zeros(M+4,1);
+EP = zeros(M+4,1);
+SV = zeros(M+4,1);
 
 MAX_HR(:,1) = [
     2.12910E+11
@@ -34,6 +34,10 @@ MAX_HR(:,1) = [
     2.51083E+11
     2.60306E+11
     2.43964E+11
+    1.84369E+11
+    2.90364E+11
+    1.86003E+11
+    2.87873E+11
 ];
 
 INT_HR(:,1) = [
@@ -61,61 +65,74 @@ INT_HR(:,1) = [
     1.85750E+05
     2.14886E+05
     1.97174E+05
+    1.33148E+05
+    2.04301E+05
+    1.35118E+05
+    2.03707E+05
 ];
 
-MAX_HR_N(:,1) = [
-    1.82043E+11
-    1.78185E+11
-    2.03071E+11
-    2.16750E+11
-    1.68494E+11
-    2.07378E+11
-    1.67374E+11
-    1.62586E+11
-    2.21614E+11
-    2.11214E+11
-    1.73034E+11
-    2.21004E+11
-    1.96252E+11
-    2.03434E+11
-    2.13360E+11
-    2.14432E+11
-    2.11036E+11
-    2.15261E+11
-    1.85174E+11
-    1.94482E+11
-    1.61116E+11
-    2.10547E+11
-    2.24437E+11
-    2.12250E+11
+EP(:,1) = [
+    2.389668
+    2.393329
+    2.402416
+    2.399836
+    2.386293
+    2.388704
+    2.389445
+    2.385821
+    2.403574
+    2.393145
+    2.380624
+    2.400453
+    2.394499
+    2.388582
+    2.408596
+    2.405758
+    2.401817
+    2.398059
+    2.397976
+    2.400359
+    2.379926
+    2.393892
+    2.410452
+    2.399798
+    0
+    0
+    0
+    0
 ];
 
-INT_HR_N(:,1) = [
-    2.165713E+06
-    2.184937E+06
-    2.354858E+06
-    2.342367E+06
-    2.103353E+06
-    2.236647E+06
-    2.047337E+06
-    1.981653E+06
-    2.436046E+06
-    2.332522E+06
-    2.027786E+06
-    2.417745E+06
-    2.274784E+06
-    2.242562E+06
-    2.435799E+06
-    2.407126E+06
-    2.420863E+06
-    2.384889E+06
-    2.263310E+06
-    2.251954E+06
-    1.916489E+06
-    2.257475E+06
-    2.539546E+06
-    2.323751E+06
+SV(:,1) = [
+    98.84409
+    98.82307
+    98.80643
+    98.80103
+    98.84968
+    98.83205
+    98.84048
+    98.85662
+    98.77254
+    98.81339
+    98.86236
+    98.79408
+    98.82126
+    98.82803
+    98.77375
+    98.78320
+    98.78914
+    98.79341
+    98.81894
+    98.80613
+    98.86254
+    98.82293
+    98.75828
+    98.80267
+    0
+    0
+    0
+    0
 ];
+SV = 100-SV;
 
 
 %% Normalized Data
@@ -131,17 +148,29 @@ Xhat = (2 * X - repmat(X_u + X_l,1,M)) ./ repmat(X_u - X_l,1,M);
 %% compute linear regression weights
 close all;
 
-uhat = [ones(M,1) Xhat'] \ MAX_HR;
+uhat = [ones(M,1) Xhat'] \ MAX_HR(1:M);
 w_maxHR = uhat(2:m+1) / norm(uhat(2:m+1));
 
-uhat = [ones(M,1) Xhat'] \ INT_HR;
+uhat = [ones(M,1) Xhat'] \ INT_HR(1:M);
 w_intHR = uhat(2:m+1) / norm(uhat(2:m+1));
+
+uhat = [ones(M,1) Xhat'] \ EP(1:M);
+w_EP = uhat(2:m+1) / norm(uhat(2:m+1));
+
+uhat = [ones(M,1) Xhat'] \ SV(1:M);
+w_SV = uhat(2:m+1) / norm(uhat(2:m+1));
 
 disp('weights (maxHR):')
 disp(w_maxHR)
 
 disp('weights (intHR):')
 disp(w_intHR)
+
+disp('weights (exit press):')
+disp(w_EP)
+
+disp('weights (subsonic vol):')
+disp(w_SV)
     
 A = [];
 b = [];
@@ -151,40 +180,79 @@ lb = -1 * ones(m,1);
 ub = 1* ones(m,1);
 x0 = zeros(m,1);
 
-x_min = fmincon(@(x) w_maxHR' * x,x0,A,b,Aeq,beq,lb,ub);
-av_min = x_min' * w_maxHR;
+%% maximum HR
+xhat_min_MHR = fmincon(@(x) w_maxHR' * x,x0,A,b,Aeq,beq,lb,ub);
+av_min = xhat_min_MHR' * w_maxHR;
 disp('maxHR min a.v.:')
 disp(av_min)
 disp('maxHR min weights:')
-disp(x_min')
-Xmin_MHR = 0.5 * (x_min .* (X_u - X_l) + (X_u + X_l));
+disp(xhat_min_MHR')
+Xmin_MHR = 0.5 * (xhat_min_MHR .* (X_u - X_l) + (X_u + X_l));
 
-x_max = fmincon(@(x) -1*(w_maxHR' * x),x0,A,b,Aeq,beq,lb,ub);
-av_max = x_max' * w_maxHR;
+xhat_max_MHR = fmincon(@(x) -1*(w_maxHR' * x),x0,A,b,Aeq,beq,lb,ub);
+av_max = xhat_max_MHR' * w_maxHR;
 disp('maxHR max a.v.:')
 disp(av_max)
 disp('maxHR max weights:')
-disp(x_max')
-Xmax_MHR = 0.5 * (x_max .* (X_u - X_l) + (X_u + X_l));
+disp(xhat_max_MHR')
+Xmax_MHR = 0.5 * (xhat_max_MHR .* (X_u - X_l) + (X_u + X_l));
 
-%%
+%% integrated HR
 
-x_min = fmincon(@(x) w_intHR' * x,x0,A,b,Aeq,beq,lb,ub);
-av_min = x_min' * w_intHR;
+xhat_min_IHR = fmincon(@(x) w_intHR' * x,x0,A,b,Aeq,beq,lb,ub);
+av_min = xhat_min_IHR' * w_intHR;
 disp('intHR min a.v.:')
 disp(av_min)
 disp('intHR min weights:')
-disp(x_min')
-Xmin_IHR = 0.5 * (x_min .* (X_u - X_l) + (X_u + X_l));
+disp(xhat_min_IHR')
+Xmin_IHR = 0.5 * (xhat_min_IHR .* (X_u - X_l) + (X_u + X_l));
 
 
-x_max = fmincon(@(x) -1*(w_intHR' * x),x0,A,b,Aeq,beq,lb,ub);
-av_max = x_max' * w_intHR;
+xhat_max_IHR = fmincon(@(x) -1*(w_intHR' * x),x0,A,b,Aeq,beq,lb,ub);
+av_max = xhat_max_IHR' * w_intHR;
 disp('intHR max a.v.:')
 disp(av_max)
 disp('intHR max weights:')
-disp(x_max')
-Xmax_IHR = 0.5 * (x_max .* (X_u - X_l) + (X_u + X_l));
+disp(xhat_max_IHR')
+Xmax_IHR = 0.5 * (xhat_max_IHR .* (X_u - X_l) + (X_u + X_l));
+
+%% exit pressure
+
+xhat_min_EP = fmincon(@(x) w_EP' * x,x0,A,b,Aeq,beq,lb,ub);
+av_min = xhat_min_EP' * w_EP;
+disp('EP min a.v.:')
+disp(av_min)
+disp('EP min weights:')
+disp(xhat_min_EP')
+Xmin_EP = 0.5 * (xhat_min_EP .* (X_u - X_l) + (X_u + X_l));
+
+
+xhat_max_EP = fmincon(@(x) -1*(w_EP' * x),x0,A,b,Aeq,beq,lb,ub);
+av_max = xhat_max_EP' * w_EP;
+disp('EP max a.v.:')
+disp(av_max)
+disp('EP max weights:')
+disp(xhat_max_EP')
+Xmax_EP = 0.5 * (xhat_max_EP .* (X_u - X_l) + (X_u + X_l));
+
+%% subsonic volume
+
+xhat_min_SV = fmincon(@(x) w_SV' * x,x0,A,b,Aeq,beq,lb,ub);
+av_min = xhat_min_SV' * w_SV;
+disp('SV min a.v.:')
+disp(av_min)
+disp('SV min weights:')
+disp(xhat_min_SV')
+Xmin_SV = 0.5 * (xhat_min_SV .* (X_u - X_l) + (X_u + X_l));
+
+
+xhat_max_SV = fmincon(@(x) -1*(w_SV' * x),x0,A,b,Aeq,beq,lb,ub);
+av_max = xhat_max_SV' * w_SV;
+disp('SV max a.v.:')
+disp(av_max)
+disp('SV max weights:')
+disp(xhat_max_SV')
+Xmax_SV = 0.5 * (xhat_max_SV .* (X_u - X_l) + (X_u + X_l));
 
 %% 
 
@@ -257,11 +325,23 @@ FFR = 1;
 
 % sufficient summary plot (maxHR)
 figure(1)
-plot(Xhat' * w_maxHR, MAX_HR, 'o',...
+plot(Xhat' * w_maxHR, MAX_HR(1:M), 'o',...
     'MarkerSize', 10,...
     'LineWidth', 1,...
     'MarkerEdgeColor', [0.5, 0.5, 0.5],...
     'MarkerFaceColor', [0.5, 0.5, 0.5]);
+hold on;
+plot([xhat_min_MHR,xhat_max_MHR]' * w_maxHR, MAX_HR(25:26), 'o',...
+        'MarkerSize', 10,...
+        'LineWidth', 1,...
+        'MarkerEdgeColor', [0.9, 0.5, 0.5],...
+        'MarkerFaceColor', [0.9, 0.5, 0.5]);
+plot([xhat_min_IHR,xhat_max_IHR]' * w_maxHR, MAX_HR(27:28), 'o',...
+        'MarkerSize', 10,...
+        'LineWidth', 2,...
+        'MarkerEdgeColor', [0.9, 0.5, 0.5],...
+        'MarkerFaceColor', [1, 1, 1]);
+hold off;
 ax = gca;
 ax.FontSize = 18;
 ax.FontName = 'Times New Roman';
@@ -270,11 +350,23 @@ ax.TickDir = 'out';
 
 % sufficient summary plot (intHR)
 figure(2)
-plot(Xhat' * w_intHR, INT_HR, 'o',...
+plot(Xhat' * w_intHR, INT_HR(1:M), 'o',...
     'MarkerSize', 10,...
     'LineWidth', 1,...
     'MarkerEdgeColor', [0.5, 0.5, 0.5],...
     'MarkerFaceColor', [0.5, 0.5, 0.5]);
+hold on;
+plot([xhat_min_MHR,xhat_max_MHR]' * w_intHR, INT_HR(25:26), 'o',...
+        'MarkerSize', 10,...
+        'LineWidth', 1,...
+        'MarkerEdgeColor', [0.9, 0.5, 0.5],...
+        'MarkerFaceColor', [0.9, 0.5, 0.5]);
+plot([xhat_min_IHR,xhat_max_IHR]' * w_intHR, INT_HR(27:28), 'o',...
+        'MarkerSize', 10,...
+        'LineWidth', 2,...
+        'MarkerEdgeColor', [0.9, 0.5, 0.5],...
+        'MarkerFaceColor', [1, 1, 1]);
+hold off;
 ax = gca;
 ax.FontSize = 18;
 ax.FontName = 'Times New Roman';
@@ -284,11 +376,13 @@ ax.TickDir = 'out';
 
 % bar chart evaluating weights
 figure(3)
-b = bar(cat(2,w_maxHR,w_intHR),1,...
+b = bar(cat(2,w_maxHR,w_intHR,w_EP,w_SV),1,...
             'EdgeColor', 'w');
         
 b(1).FaceColor = [0.5, 0.5, 0.5];
 b(2).FaceColor = [24,87,155]./255;
+b(3).FaceColor = [155,24,87]./255;
+b(4).FaceColor = [87,155,24]./255;
 ax = gca;
 ax.FontSize = 20;
 ax.FontName = 'Times New Roman';
