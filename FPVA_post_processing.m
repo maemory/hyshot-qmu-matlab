@@ -84,7 +84,7 @@ EP(:,1) = [
     2.393145
     2.380624
     2.400453
-    2.394499
+    2.394596
     2.388582
     2.408596
     2.405758
@@ -95,7 +95,7 @@ EP(:,1) = [
     2.379926
     2.393892
     2.410452
-    2.399798
+    2.400368
     0
     0
     0
@@ -126,7 +126,7 @@ SV(:,1) = [
     98.86254
     98.82293
     98.75828
-    98.80267
+    98.80117
     0
     0
     0
@@ -374,7 +374,7 @@ ax.Box = 'off';
 ax.TickDir = 'out';
 
 
-% bar chart evaluating weights
+% bar chart evaluating active variable
 figure(3)
 b = bar(cat(2,w_maxHR,w_intHR,w_EP,w_SV),1,...
             'EdgeColor', 'w');
@@ -392,7 +392,23 @@ ax.XTickLabelRotation = 0;
 fig3 = gcf;
 fig3.OuterPosition(3) = fig3.OuterPosition(3) + 50;
 
-
+%% bar chart evaluating weights
+figure(4)
+b = bar(cat(2,xhat_min_MHR,xhat_min_IHR,xhat_min_EP,xhat_min_SV),1,...
+            'EdgeColor', 'w');
+        
+b(1).FaceColor = [0.5, 0.5, 0.5];
+b(2).FaceColor = [24,87,155]./255;
+b(3).FaceColor = [155,24,87]./255;
+b(4).FaceColor = [87,155,24]./255;
+ax = gca;
+ax.FontSize = 20;
+ax.FontName = 'Times New Roman';
+ax.Box = 'off';
+ax.TickDir = 'out';
+ax.XTickLabelRotation = 0;
+fig4 = gcf;
+fig4.OuterPosition(3) = fig4.OuterPosition(3) + 50;
 
 
 
