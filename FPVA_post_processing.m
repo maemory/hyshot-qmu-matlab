@@ -410,5 +410,20 @@ ax.XTickLabelRotation = 0;
 fig4 = gcf;
 fig4.OuterPosition(3) = fig4.OuterPosition(3) + 50;
 
-
+figure(5)
+b = bar(cat(2,xhat_max_MHR,xhat_max_IHR,xhat_max_EP,xhat_max_SV),1,...
+            'EdgeColor', 'w');
+        
+b(1).FaceColor = [0.5, 0.5, 0.5];
+b(2).FaceColor = [24,87,155]./255;
+b(3).FaceColor = [155,24,87]./255;
+b(4).FaceColor = [87,155,24]./255;
+ax = gca;
+ax.FontSize = 20;
+ax.FontName = 'Times New Roman';
+ax.Box = 'off';
+ax.TickDir = 'out';
+ax.XTickLabelRotation = 0;
+fig5 = gcf;
+fig5.OuterPosition(3) = fig5.OuterPosition(3) + 50;
 
