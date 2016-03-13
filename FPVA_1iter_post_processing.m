@@ -4,8 +4,8 @@ clear all; clc;
 M = 24;
 m = 12;
 
-MAX_HR = zeros(M,4);
-INT_HR = zeros(M,4);
+MAX_HR = zeros(M+4,4);
+INT_HR = zeros(M+4,4);
 
 MAX_HR(:,1) = [
 2.09543E+11
@@ -32,6 +32,10 @@ MAX_HR(:,1) = [
 2.45784E+11
 2.51214E+11
 2.39258E+11
+1.74881E+11
+2.78825E+11
+1.76175E+11
+2.76149E+11
 ];
 
 MAX_HR(:,2) = [
@@ -59,6 +63,10 @@ MAX_HR(:,2) = [
 2.51083E+11
 2.60306E+11
 2.43964E+11
+1.84369E+11
+2.90364E+11
+1.86003E+11
+2.87873E+11
 ];
 
 MAX_HR(:,3) = [
@@ -86,10 +94,14 @@ MAX_HR(:,3) = [
 2.52165E+11
 2.67270E+11
 2.44563E+11
+1.83378E+11
+2.96513E+11
+1.84898E+11
+2.94027E+11
 ];
 
 MAX_HR(:,4) = [
-    2.12836E+11
+2.12836E+11
 2.28429E+11
 2.26636E+11
 2.52700E+11
@@ -113,6 +125,10 @@ MAX_HR(:,4) = [
 2.52658E+11
 2.63216E+11
 2.44534E+11
+1.82081E+11
+2.91837E+11
+1.83801E+11
+2.89853E+11
 ];
 
 INT_HR(:,1) = [
@@ -140,6 +156,10 @@ INT_HR(:,1) = [
 1.56624E+05
 1.81974E+05
 1.66409E+05
+1.12562E+05
+1.72764E+05
+1.14286E+05
+1.72285E+05
 ];
 
 INT_HR(:,2) = [
@@ -167,6 +187,10 @@ INT_HR(:,2) = [
 1.85750E+05
 2.14886E+05
 1.97174E+05
+1.33148E+05
+2.04301E+05
+1.35118E+05
+2.03707E+05
 ];
 
 INT_HR(:,3) = [
@@ -194,6 +218,10 @@ INT_HR(:,3) = [
 2.02580E+05
 2.33287E+05
 2.14793E+05
+1.42678E+05
+2.18012E+05
+1.44862E+05
+2.17373E+05
 ];
 
 INT_HR(:,4) = [
@@ -221,6 +249,10 @@ INT_HR(:,4) = [
 2.24625E+05
 2.56217E+05
 2.37321E+05
+1.55203E+05
+2.37245E+05
+1.58178E+05
+2.36533E+05
 ];
 
 %% Normalized Data
@@ -237,31 +269,31 @@ Xhat = (2 * X - repmat(X_u + X_l,1,M)) ./ repmat(X_u - X_l,1,M);
 close all;
 
 % FFR25
-uhat = [ones(M,1) Xhat'] \ MAX_HR(:,1);
+uhat = [ones(M,1) Xhat'] \ MAX_HR(1:M,1);
 w_maxHR_25 = uhat(2:m+1) / norm(uhat(2:m+1));
 
-uhat = [ones(M,1) Xhat'] \ INT_HR(:,1);
+uhat = [ones(M,1) Xhat'] \ INT_HR(1:M,1);
 w_intHR_25 = uhat(2:m+1) / norm(uhat(2:m+1));
 
 % FFR30
-uhat = [ones(M,1) Xhat'] \ MAX_HR(:,2);
+uhat = [ones(M,1) Xhat'] \ MAX_HR(1:M,2);
 w_maxHR_30 = uhat(2:m+1) / norm(uhat(2:m+1));
 
-uhat = [ones(M,1) Xhat'] \ INT_HR(:,2);
+uhat = [ones(M,1) Xhat'] \ INT_HR(1:M,2);
 w_intHR_30 = uhat(2:m+1) / norm(uhat(2:m+1));
 
 % FFR35
-uhat = [ones(M,1) Xhat'] \ MAX_HR(:,3);
+uhat = [ones(M,1) Xhat'] \ MAX_HR(1:M,3);
 w_maxHR_35 = uhat(2:m+1) / norm(uhat(2:m+1));
 
-uhat = [ones(M,1) Xhat'] \ INT_HR(:,3);
+uhat = [ones(M,1) Xhat'] \ INT_HR(1:M,3);
 w_intHR_35 = uhat(2:m+1) / norm(uhat(2:m+1));
 
 % FFR40
-uhat = [ones(M,1) Xhat'] \ MAX_HR(:,4);
+uhat = [ones(M,1) Xhat'] \ MAX_HR(1:M,4);
 w_maxHR_40 = uhat(2:m+1) / norm(uhat(2:m+1));
 
-uhat = [ones(M,1) Xhat'] \ INT_HR(:,4);
+uhat = [ones(M,1) Xhat'] \ INT_HR(1:M,4);
 w_intHR_40 = uhat(2:m+1) / norm(uhat(2:m+1));
 
 %% minimization
@@ -274,11 +306,26 @@ lb = -1 * ones(m,1);
 ub = 1* ones(m,1);
 x0 = zeros(m,1);
 
-% maximum HR
+% min MHR
+xhat_min_MHR_25 = fmincon(@(x) 1*(w_maxHR_25' * x),x0,A,b,Aeq,beq,lb,ub);
+av_min = xhat_min_MHR_25' * w_maxHR_25;
+Xmin_MHR_25 = 0.5 * (xhat_min_MHR_25 .* (X_u - X_l) + (X_u + X_l));
+
+xhat_min_MHR_30 = fmincon(@(x) 1*(w_maxHR_30' * x),x0,A,b,Aeq,beq,lb,ub);
+av_min = xhat_min_MHR_30' * w_maxHR_30;
+Xmin_MHR_30 = 0.5 * (xhat_min_MHR_30 .* (X_u - X_l) + (X_u + X_l));
+
+xhat_min_MHR_35 = fmincon(@(x) 1*(w_maxHR_35' * x),x0,A,b,Aeq,beq,lb,ub);
+av_min = xhat_min_MHR_35' * w_maxHR_35;
+Xmin_MHR_35 = 0.5 * (xhat_min_MHR_35 .* (X_u - X_l) + (X_u + X_l));
+
+xhat_min_MHR_40 = fmincon(@(x) 1*(w_maxHR_40' * x),x0,A,b,Aeq,beq,lb,ub);
+av_min = xhat_min_MHR_40' * w_maxHR_40;
+Xmin_MHR_40 = 0.5 * (xhat_min_MHR_40 .* (X_u - X_l) + (X_u + X_l));
+
+% max MHR
 xhat_max_MHR_25 = fmincon(@(x) -1*(w_maxHR_25' * x),x0,A,b,Aeq,beq,lb,ub);
 av_max = xhat_max_MHR_25' * w_maxHR_25;
-% disp('maxHR 25 max a.v.:')
-% disp(av_max)
 Xmax_MHR_25 = 0.5 * (xhat_max_MHR_25 .* (X_u - X_l) + (X_u + X_l));
 
 xhat_max_MHR_30 = fmincon(@(x) -1*(w_maxHR_30' * x),x0,A,b,Aeq,beq,lb,ub);
@@ -293,11 +340,26 @@ xhat_max_MHR_40 = fmincon(@(x) -1*(w_maxHR_40' * x),x0,A,b,Aeq,beq,lb,ub);
 av_max = xhat_max_MHR_40' * w_maxHR_40;
 Xmax_MHR_40 = 0.5 * (xhat_max_MHR_40 .* (X_u - X_l) + (X_u + X_l));
 
-% integrated HR
+% min IHR
+xhat_min_IHR_25 = fmincon(@(x) 1*(w_intHR_25' * x),x0,A,b,Aeq,beq,lb,ub);
+av_min = xhat_min_IHR_25' * w_intHR_25;
+Xmin_IHR_25 = 0.5 * (xhat_min_IHR_25 .* (X_u - X_l) + (X_u + X_l));
+
+xhat_min_IHR_30 = fmincon(@(x) 1*(w_intHR_30' * x),x0,A,b,Aeq,beq,lb,ub);
+av_min = xhat_min_IHR_30' * w_intHR_30;
+Xmin_IHR_30 = 0.5 * (xhat_min_IHR_30 .* (X_u - X_l) + (X_u + X_l));
+
+xhat_min_IHR_35 = fmincon(@(x) 1*(w_intHR_35' * x),x0,A,b,Aeq,beq,lb,ub);
+av_min = xhat_min_IHR_35' * w_intHR_35;
+Xmin_IHR_35 = 0.5 * (xhat_min_IHR_35 .* (X_u - X_l) + (X_u + X_l));
+
+xhat_min_IHR_40 = fmincon(@(x) 1*(w_intHR_40' * x),x0,A,b,Aeq,beq,lb,ub);
+av_min = xhat_min_IHR_40' * w_intHR_40;
+Xmin_IHR_40 = 0.5 * (xhat_min_IHR_40 .* (X_u - X_l) + (X_u + X_l));
+
+% max IHR
 xhat_max_IHR_25 = fmincon(@(x) -1*(w_intHR_25' * x),x0,A,b,Aeq,beq,lb,ub);
 av_max = xhat_max_IHR_25' * w_intHR_25;
-% disp('intHR 25 max a.v.:')
-% disp(av_max)
 Xmax_IHR_25 = 0.5 * (xhat_max_IHR_25 .* (X_u - X_l) + (X_u + X_l));
 
 xhat_max_IHR_30 = fmincon(@(x) -1*(w_intHR_30' * x),x0,A,b,Aeq,beq,lb,ub);
@@ -328,28 +390,59 @@ disp(' > max(int(HR)) 35');
 disp(Xmax_IHR_35);
 %%
 FFR = 4;
+with_minmax = true;
 switch FFR
     case 1
         w_maxHR = w_maxHR_25;
         w_intHR = w_intHR_25;
+        xhat_min_MHR = xhat_min_MHR_25;
+        xhat_max_MHR = xhat_max_MHR_25;
+        xhat_min_IHR = xhat_min_IHR_25;
+        xhat_max_IHR = xhat_max_IHR_25;
     case 2
         w_maxHR = w_maxHR_30;
         w_intHR = w_intHR_30;
+        xhat_min_MHR = xhat_min_MHR_30;
+        xhat_max_MHR = xhat_max_MHR_30;
+        xhat_min_IHR = xhat_min_IHR_30;
+        xhat_max_IHR = xhat_max_IHR_30;
     case 3
         w_maxHR = w_maxHR_35;
         w_intHR = w_intHR_35;
+        xhat_min_MHR = xhat_min_MHR_35;
+        xhat_max_MHR = xhat_max_MHR_35;
+        xhat_min_IHR = xhat_min_IHR_35;
+        xhat_max_IHR = xhat_max_IHR_35;
     case 4
         w_maxHR = w_maxHR_40;
         w_intHR = w_intHR_40;
+        xhat_min_MHR = xhat_min_MHR_40;
+        xhat_max_MHR = xhat_max_MHR_40;
+        xhat_min_IHR = xhat_min_IHR_40;
+        xhat_max_IHR = xhat_max_IHR_40;
 end        
 
 % sufficient summary plot (maxHR)
 figure(1)
-plot(Xhat' * w_maxHR, MAX_HR(:,FFR), 'o',...
+plot(Xhat' * w_maxHR, MAX_HR(1:M,FFR), 'o',...
     'MarkerSize', 10,...
     'LineWidth', 1,...
     'MarkerEdgeColor', [0.5, 0.5, 0.5],...
     'MarkerFaceColor', [0.5, 0.5, 0.5]);
+if with_minmax
+    hold on;
+    plot([xhat_min_MHR,xhat_max_MHR]' * w_maxHR, MAX_HR(M+1:M+2,FFR), 'o',...
+        'MarkerSize', 10,...
+        'LineWidth', 1,...
+        'MarkerEdgeColor', [0.9, 0.5, 0.5],...
+        'MarkerFaceColor', [0.9, 0.5, 0.5]);
+    plot([xhat_min_IHR,xhat_max_IHR]' * w_maxHR, MAX_HR(M+3:M+4,FFR), 'o',...
+        'MarkerSize', 10,...
+        'LineWidth', 2,...
+        'MarkerEdgeColor', [0.9, 0.5, 0.5],...
+        'MarkerFaceColor', [1, 1, 1]);
+    hold off;
+end
 ax = gca;
 ax.FontSize = 18;
 ax.FontName = 'Times New Roman';
@@ -358,11 +451,25 @@ ax.TickDir = 'out';
 
 % sufficient summary plot (intHR)
 figure(2)
-plot(Xhat' * w_intHR, INT_HR(:,FFR), 'o',...
+plot(Xhat' * w_intHR, INT_HR(1:M,FFR), 'o',...
     'MarkerSize', 10,...
     'LineWidth', 1,...
     'MarkerEdgeColor', [0.5, 0.5, 0.5],...
     'MarkerFaceColor', [0.5, 0.5, 0.5]);
+if with_minmax
+    hold on;
+    plot([xhat_min_MHR,xhat_max_MHR]' * w_intHR, INT_HR(M+1:M+2,FFR), 'o',...
+        'MarkerSize', 10,...
+        'LineWidth', 1,...
+        'MarkerEdgeColor', [0.9, 0.5, 0.5],...
+        'MarkerFaceColor', [0.9, 0.5, 0.5]);
+    plot([xhat_min_IHR,xhat_max_IHR]' * w_intHR, INT_HR(M+3:M+4,FFR), 'o',...
+        'MarkerSize', 10,...
+        'LineWidth', 2,...
+        'MarkerEdgeColor', [0.9, 0.5, 0.5],...
+        'MarkerFaceColor', [1, 1, 1]);
+    hold off;
+end
 ax = gca;
 ax.FontSize = 18;
 ax.FontName = 'Times New Roman';
@@ -372,13 +479,13 @@ ax.TickDir = 'out';
 %%
 % bar chart evaluating active variable
 figure(3)
-b = bar(cat(2,w_maxHR_25,w_intHR_25),1,...
+b = bar(cat(2,w_maxHR_25,w_maxHR_30,w_maxHR_35,w_maxHR_40),1,...
             'EdgeColor', 'w');
         
 b(1).FaceColor = [0.5, 0.5, 0.5];
 b(2).FaceColor = [24,87,155]./255;
-% b(3).FaceColor = [155,24,87]./255;
-% b(4).FaceColor = [87,155,24]./255;
+b(3).FaceColor = [155,24,87]./255;
+b(4).FaceColor = [87,155,24]./255;
 ax = gca;
 ax.FontSize = 20;
 ax.FontName = 'Times New Roman';
@@ -388,10 +495,9 @@ ax.XTickLabelRotation = 0;
 fig3 = gcf;
 fig3.OuterPosition(3) = fig3.OuterPosition(3) + 50;
 
-%% bar chart evaluating max sample
-% MHR cmparison
+% bar chart evaluating active variable
 figure(4)
-b = bar(cat(2,xhat_max_MHR_25,xhat_max_MHR_30,xhat_max_MHR_35,xhat_max_MHR_40),1,...
+b = bar(cat(2,w_intHR_25,w_intHR_30,w_intHR_35,w_intHR_40),1,...
             'EdgeColor', 'w');
         
 b(1).FaceColor = [0.5, 0.5, 0.5];
@@ -407,8 +513,26 @@ ax.XTickLabelRotation = 0;
 fig4 = gcf;
 fig4.OuterPosition(3) = fig4.OuterPosition(3) + 50;
 
-% IHR comparison
+%% bar chart evaluating max sample
+% MHR cmparison
 figure(5)
+b = bar(cat(2,xhat_max_MHR_25,xhat_max_MHR_30,xhat_max_MHR_35,xhat_max_MHR_40),1,...
+            'EdgeColor', 'w');
+b(1).FaceColor = [0.5, 0.5, 0.5];
+b(2).FaceColor = [24,87,155]./255;
+b(3).FaceColor = [155,24,87]./255;
+b(4).FaceColor = [87,155,24]./255;
+ax = gca;
+ax.FontSize = 20;
+ax.FontName = 'Times New Roman';
+ax.Box = 'off';
+ax.TickDir = 'out';
+ax.XTickLabelRotation = 0;
+fig5 = gcf;
+fig5.OuterPosition(3) = fig5.OuterPosition(3) + 50;
+
+% IHR comparison
+figure(6)
 b = bar(cat(2,xhat_max_IHR_25,xhat_max_IHR_30,xhat_max_IHR_35,xhat_max_IHR_40),1,...
             'EdgeColor', 'w');
         
@@ -422,5 +546,21 @@ ax.FontName = 'Times New Roman';
 ax.Box = 'off';
 ax.TickDir = 'out';
 ax.XTickLabelRotation = 0;
-fig5 = gcf;
-fig5.OuterPosition(3) = fig5.OuterPosition(3) + 50;
+fig6 = gcf;
+fig6.OuterPosition(3) = fig6.OuterPosition(3) + 50;
+
+% MHR vs IHR
+figure(7)
+b = bar(cat(2,xhat_max_MHR_25,xhat_max_IHR_25),1,...
+            'EdgeColor', 'w');
+        
+b(1).FaceColor = [0.5, 0.5, 0.5];
+b(2).FaceColor = [24,87,155]./255;
+ax = gca;
+ax.FontSize = 20;
+ax.FontName = 'Times New Roman';
+ax.Box = 'off';
+ax.TickDir = 'out';
+ax.XTickLabelRotation = 0;
+fig7 = gcf;
+fig7.OuterPosition(3) = fig7.OuterPosition(3) + 50;
